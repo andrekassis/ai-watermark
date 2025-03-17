@@ -1,0 +1,4 @@
+checkpoint: stabilityai/stable-diffusion-2-1-base
+data_path: datasets/treering_prompts.obj
+watermark_path: pretrained_models/watermarkers/gs/watermarks/gs_watermark.pkl
+

@@ -28,3 +28,4 @@ huggingface_hub==0.25.0
 ldpc
 galois
 datasets
+pycryptodome==3.21.0

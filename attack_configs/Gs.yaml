@@ -1,0 +1,146 @@
+UnMarker:
+    preprocess_args:
+        crop_ratio: !!python/tuple [0.9, 0.9]
+
+    stage2_args:
+        loss_fn: 
+            type: DeeplossVGG
+        loss_thresh: 3.0e-3
+        dist_fn: 
+            type: MeanLoss
+            args: 
+                kernels: 
+                    - !!python/tuple [5, 5]
+        clip_min: 0.0
+        clip_max: 1.0
+        binary_search_steps: 1
+        max_iterations: 500
+        initial_const: 1.0e6
+        filter_args:
+            loss_factor: 5
+            box: !!python/tuple [1, 1]
+            kernels:
+                - !!python/tuple [21, 5]
+                - !!python/tuple [5, 5]
+                - !!python/tuple [17, 33]
+                - !!python/tuple [7, 7]
+                - !!python/tuple [47, 5]
+                - !!python/tuple [33, 17]
+                - !!python/tuple [17, 17]
+                - !!python/tuple [5, 5]
+                - !!python/tuple [3, 3]
+            sigma_color: 0.05
+            norm: 1
+            pad_mode: reflect
+            filter_mode: false
+            loss_norm: 2
+        modifier_type: LA
+        optimizer_args:
+            type: Adam
+            regularization:
+                type: l2
+                factor: 2.5e-4
+            max_grad_l_inf: 1.0
+            learning_rate: 
+                values:
+                    - 0.01
+                    - 0.01 
+                    - 0.01 
+                    - 0.01 
+                    - 0.01 
+                    - 0.01 
+                    - 0.01 
+                    - 0.01 
+                    - 0.01 
+                    - 0.002
+                scheduler:
+                    type: ReduceLROnPlateau
+                    args:
+                        decay_threshold: 0.05
+                        decay_factor: 0.99
+            scale_mode: fp32
+        progress_bar_args:
+            eval_interval: 500
+            verbose: True
+    
+    stage1_args:
+        loss_fn: 
+            type: DeeplossVGG
+        dist_fn: 
+            type: FFTLoss
+            args:
+                norm: 1
+                power: 1
+        loss_thresh: 1e-4
+        clip_min: 0.0
+        clip_max: 1.0
+        binary_search_steps: 1 #4
+        max_iterations: 2000 #5000
+        initial_const: 1e6
+        filter_args:
+            loss_factor: 0
+            box: !!python/tuple [1, 1]
+            kernels: null
+            sigma_color: 0.1
+            norm: 1
+            pad_mode: reflect
+            filter_mode: false
+            loss_norm: 2
+        modifier_type: RGB
+        optimizer_args:
+            type: Adam
+            regularization:
+                type: l2
+                factor: 0.6
+                thresh: 1.0e-4
+            max_grad_l_inf: 0.005
+            learning_rate: 
+                values: 
+                    - 0.0002
+            scheduler:
+                    type: ReduceLROnPlateau
+                    args:
+                        decay_threshold: 0.0001
+                        decay_factor: 0.5
+            tanh_space: false
+            scale_mode: fp32
+        progress_bar_args:
+            eval_interval: 500
+            verbose: True
+    stage_selector: [preprocess, stage1] #, stage2] #Stage2 i.e, low-frequency is not required for StableSignature and can lead to worse quality
+
+DiffusionAttack:
+    crop_ratio: 0.9 # whether to apply cropping with the DiffusionAttack. Comment out if you wish to disable this.
+    diffusion_type: GuidedDiffusion
+    diffusion_args:
+        model_path: pretrained_models/imagenet.pth
+        num_diffusion_timesteps: 1000
+        sample_step: 1
+        t: 0.2
+VAEAttack:
+    vae_type: bmshj2018-hyperprior
+    quality: 1  #1 2 3
+
+Crop:
+    ratio: 0.9
+
+JPEG:
+    quality: 110 #range: 80 110
+   
+SuperResolution:
+    ro: 0.125 #range: 0.125-0.5
+
+Blur:
+    kernel_size: 5
+    sigma: !!python/tuple [1.0, 1.0] #0.5 1.0
+
+GuidedBlur:
+    kernel_size: 5
+    sigma: !!python/tuple [5.0, 5.0]
+    color_sigma: 5.0 #0.1 1.0 5.0
+
+Noise:
+    sigma: 0.05 #range: 0-0.05
+
+Quantize:
+    strength: 8 #8 10
