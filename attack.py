@@ -65,7 +65,8 @@ if __name__ == "__main__":
             "StegaStamp",
             "StableSignature",
             "Prc",
-            "Gs"
+            "Gs",
+            "Vine"
         ],
         required=True,
     )

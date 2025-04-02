@@ -29,3 +29,4 @@ ldpc
 galois
 datasets
 pycryptodome==3.21.0
+peft==0.11.1
