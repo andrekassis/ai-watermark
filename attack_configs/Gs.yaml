@@ -62,7 +62,7 @@ UnMarker:
         progress_bar_args:
             eval_interval: 500
             verbose: True
-    
+
     stage1_args:
         loss_fn: 
             type: DeeplossVGG
@@ -126,7 +126,7 @@ Crop:
 
 JPEG:
     quality: 110 #range: 80 110
-   
+
 SuperResolution:
     ro: 0.125 #range: 0.125-0.5
 

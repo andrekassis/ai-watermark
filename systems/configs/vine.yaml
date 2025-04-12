@@ -1,5 +1,4 @@
 encoder_path: Shilin-LU/VINE-R-Enc
 decoder_path: Shilin-LU/VINE-R-Dec
-data_path: datasets/coco/val_class
 watermark_path: pretrained_models/watermarkers/vine/watermarks/vine_watermark.pkl
-
+image_size: 512

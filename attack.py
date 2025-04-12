@@ -66,7 +66,7 @@ if __name__ == "__main__":
             "StableSignature",
             "Prc",
             "Gs",
-            "Vine"
+            "Vine",
         ],
         required=True,
     )

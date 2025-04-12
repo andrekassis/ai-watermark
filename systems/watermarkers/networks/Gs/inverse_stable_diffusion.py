@@ -5,20 +5,21 @@ import torch
 from transformers import CLIPFeatureExtractor, CLIPTextModel, CLIPTokenizer
 
 from diffusers.models import AutoencoderKL, UNet2DConditionModel
+
 # from diffusers import StableDiffusionPipeline
-from diffusers.pipelines.stable_diffusion.safety_checker import \
-    StableDiffusionSafetyChecker
-from diffusers.schedulers import DDIMScheduler,PNDMScheduler, LMSDiscreteScheduler
+from diffusers.pipelines.stable_diffusion.safety_checker import (
+    StableDiffusionSafetyChecker,
+)
+from diffusers.schedulers import DDIMScheduler, PNDMScheduler, LMSDiscreteScheduler
 
 from .modified_stable_diffusion import ModifiedStableDiffusionPipeline
 from torchvision.transforms import ToPILImage
 import matplotlib.pyplot as plt
 
 
-
 ### credit to: https://github.com/cccntu/efficient-prompt-to-prompt
 def backward_ddim(x_t, alpha_t, alpha_tm1, eps_xt):
-    """ from noise to image"""
+    """from noise to image"""
     return (
         alpha_tm1**0.5
         * (
@@ -28,13 +29,15 @@ def backward_ddim(x_t, alpha_t, alpha_tm1, eps_xt):
         + x_t
     )
 
+
 def forward_ddim(x_t, alpha_t, alpha_tp1, eps_xt):
-    """ from image to noise, it's the same as backward_ddim"""
+    """from image to noise, it's the same as backward_ddim"""
     return backward_ddim(x_t, alpha_t, alpha_tp1, eps_xt)
 
 
 class InversableStableDiffusionPipeline(ModifiedStableDiffusionPipeline):
-    def __init__(self,
+    def __init__(
+        self,
         vae,
         text_encoder,
         tokenizer,
@@ -45,18 +48,20 @@ class InversableStableDiffusionPipeline(ModifiedStableDiffusionPipeline):
         requires_safety_checker: bool = False,
     ):
 
-        super(InversableStableDiffusionPipeline, self).__init__(vae,
-                text_encoder,
-                tokenizer,
-                unet,
-                scheduler,
-                safety_checker,
-                feature_extractor,
-                requires_safety_checker)
+        super(InversableStableDiffusionPipeline, self).__init__(
+            vae,
+            text_encoder,
+            tokenizer,
+            unet,
+            scheduler,
+            safety_checker,
+            feature_extractor,
+            requires_safety_checker,
+        )
 
         self.forward_diffusion = partial(self.backward_diffusion, reverse_process=True)
         self.count = 0
-    
+
     def get_random_latents(self, latents=None, height=512, width=512, generator=None):
         height = height or self.unet.config.sample_size * self.vae_scale_factor
         width = width or self.unet.config.sample_size * self.vae_scale_factor
@@ -90,7 +95,7 @@ class InversableStableDiffusionPipeline(ModifiedStableDiffusionPipeline):
         ).input_ids
         text_embeddings = self.text_encoder(text_input_ids.to(self.device))[0]
         return text_embeddings
-    
+
     @torch.inference_mode()
     def get_image_latents(self, image, sample=True, rng_generator=None):
         encoding_dist = self.vae.encode(image).latent_dist
@@ -100,7 +105,6 @@ class InversableStableDiffusionPipeline(ModifiedStableDiffusionPipeline):
             encoding = encoding_dist.mode()
         latents = encoding * 0.18215
         return latents
-
 
     @torch.inference_mode()
     def backward_diffusion(
@@ -117,8 +121,7 @@ class InversableStableDiffusionPipeline(ModifiedStableDiffusionPipeline):
         reverse_process: True = False,
         **kwargs,
     ):
-        """ Generate image from text prompt and latents
-        """
+        """Generate image from text prompt and latents"""
         # here `guidance_scale` is defined analog to the guidance weight `w` of equation (2)
         # of the Imagen paper: https://arxiv.org/pdf/2205.11487.pdf . `guidance_scale = 1`
         # corresponds to doing no classifier free guidance.
@@ -136,8 +139,11 @@ class InversableStableDiffusionPipeline(ModifiedStableDiffusionPipeline):
         else:
             prompt_to_prompt = False
 
-
-        for i, t in enumerate(self.progress_bar(timesteps_tensor if not reverse_process else reversed(timesteps_tensor))):
+        for i, t in enumerate(
+            self.progress_bar(
+                timesteps_tensor if not reverse_process else reversed(timesteps_tensor)
+            )
+        ):
             if prompt_to_prompt:
                 if i < use_old_emb_i:
                     text_embeddings = old_text_embeddings
@@ -170,7 +176,7 @@ class InversableStableDiffusionPipeline(ModifiedStableDiffusionPipeline):
             # call the callback, if provided
             if callback is not None and i % callback_steps == 0:
                 callback(i, t, latents)
-            
+
             # ddim
             alpha_prod_t = self.scheduler.alphas_cumprod[t]
             alpha_prod_t_prev = (
@@ -188,12 +194,12 @@ class InversableStableDiffusionPipeline(ModifiedStableDiffusionPipeline):
             )
         return latents
 
-    
     @torch.inference_mode()
     def decode_image(self, latents: torch.FloatTensor, **kwargs):
         scaled_latents = 1 / 0.18215 * latents
         image = [
-            self.vae.decode(scaled_latents[i : i + 1]).sample for i in range(len(latents))
+            self.vae.decode(scaled_latents[i : i + 1]).sample
+            for i in range(len(latents))
         ]
         image = torch.cat(image, dim=0)
         return image

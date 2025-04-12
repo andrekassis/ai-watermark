@@ -70,7 +70,9 @@ class BaseWatermarker(ABC):
         pass
 
     def err(self, x_batch, msg_batch):
-        return torch.abs(x_batch - msg_batch).mean(-1)
+        return torch.abs(
+            x_batch.view(x_batch.shape[0], -1) - msg_batch.view(msg_batch.shape[0], -1)
+        ).mean(-1)
 
     def process_encoder_input(self, x):
         return self.resizer(x)
@@ -212,7 +214,7 @@ class BaseWatermarker(ABC):
 
     def get_watermarked_images(self, input_dir, num_images, image_size=256):
         raw_images = self.get_raw_images(input_dir, num_images, image_size=image_size)
-        return self.post_process_raw(raw_images), self.encode(raw_images)  # .detach())
+        return self.post_process_raw(raw_images), self.encode(raw_images)
 
     def get_unmarked_images(self, x, input_dir, num_images, image_size=256):
         return x
@@ -227,6 +229,9 @@ class RandomWatermarkers(BaseWatermarker):
             msg = np.load(watermark_path)[: self.watermark_length]
         else:
             msg = np.random.choice([0, 1], (1, self.watermark_length))
+            base = "/".join(watermark_path.split("/")[:-1])
+            if base != "":
+                os.makedirs(base, exist_ok=True)
             np.save(watermark_path, msg)
         return torch.Tensor(msg).float()
 

@@ -1,4 +1,3 @@
-import bchlib
 import os
 import pickle
 from PIL import Image, ImageOps
@@ -79,35 +78,8 @@ class Stega(BaseWatermarker):
                     )
                 )
 
-                self.bch = bchlib.BCH(137, 5)
-
             def _extract(self, message):
-                ###
                 return torch.from_numpy(np.array(message).astype(np.float32))
-                ###
-                packet_binary = [
-                    "".join([str(int(bit)) for bit in secret]) for secret in message
-                ]
-                packet = [
-                    bytes(int(p[i : i + 8], 2) for i in range(0, len(p), 8))
-                    for p in packet_binary
-                ]
-                packet = [bytearray(p) for p in packet]
-
-                codes = []
-                for p in packet:
-                    bitflips = self.bch.decode_inplace(
-                        p[: -self.bch.ecc_bytes], p[-self.bch.ecc_bytes :]
-                    )
-                    if bitflips != -1:
-                        try:
-                            code = p[: -self.bch.ecc_bytes].decode("utf-8")
-                        except:
-                            code = "00000"
-                    else:
-                        code = "00000"
-                    codes.append([ord(c) for c in code][:5])
-                return torch.from_numpy(np.array(codes).astype(np.float32))
 
             def __call__(self, x):
                 image = x.permute(0, 2, 3, 1).detach().cpu().numpy()
@@ -115,8 +87,7 @@ class Stega(BaseWatermarker):
                     self.sess.run(
                         [self.output_secret], feed_dict={self.input_image: image}
                     )[0]
-                )  # [:,:96]
-                # print(decoded)
+                )
                 return self._extract(decoded).to(x.device)
 
         model, sess = decoder_checkpoint
@@ -172,26 +143,9 @@ class Stega(BaseWatermarker):
                         output_residual_name
                     )
                 )
-                self.bch = bchlib.BCH(137, 5)
 
             def _make_msg(self, watermark):
-                ###
                 return watermark.detach().cpu().numpy().astype(np.int32).tolist()
-                ###
-                watermark = watermark.detach().cpu().numpy().astype(np.int32)
-                watermark = ["".join([chr(c) for c in w]) for w in watermark]
-                msg = []
-                for w in watermark:
-                    data = bytearray(w + " " * (7 - len(w)), "utf-8")
-                    wmk = [
-                        int(xx)
-                        for xx in "".join(
-                            format(x, "08b") for x in (data + self.bch.encode(data))
-                        )
-                    ]
-                    wmk.extend([0, 0, 0, 0])
-                    msg.append(wmk)
-                return msg
 
             def __call__(self, x, msg):
                 image = x.permute(0, 2, 3, 1).detach().cpu().numpy()

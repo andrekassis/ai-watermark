@@ -1,4 +1,3 @@
 checkpoint: stabilityai/stable-diffusion-2-1-base
 data_path: datasets/treering_prompts.obj
 watermark_path: pretrained_models/watermarkers/prc/watermarks/prc_codeword.pkl
-keys_path: pretrained_models/watermarkers/prc/watermarks/encode_decode_keys.pkl

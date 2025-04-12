@@ -152,7 +152,7 @@ class BaseAttack:
                 name: float(np.mean(self.evaluator.is_detected(acc)))
                 for name, acc in acc_dict.items()
             }
-            pbar.update(1)
+            #pbar.update(1)
             pbar.set_description(
                 f"{', '.join([ f'{k}: {v}' for k, v in out.items() ])}. Processed samples"
             )
