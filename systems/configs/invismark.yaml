@@ -1,0 +1,4 @@
+weights_path: pretrained_models/watermarkers/invismark/models/weights.ckpt
+watermark_path: pretrained_models/watermarkers/invismark/watermarks/invis_watermark.npy
+image_size: 256
+

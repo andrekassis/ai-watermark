@@ -67,6 +67,7 @@ if __name__ == "__main__":
             "Prc",
             "Gs",
             "Vine",
+            "InvisMark",
         ],
         required=True,
     )
