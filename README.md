@@ -35,6 +35,22 @@ year = {2025},
 doi = {10.1109/SP61157.2025.00005},
 }
 
+### News
+
+**Newly supported watermark schemes (post-paper):** we added evaluations for the following recent schemes to further demonstrate UnMarker’s broad effectiveness:
+
+- `Gs` — [Gaussian Shading: Provable Performance-Lossless Image Watermarking for Diffusion Models](https://arxiv.org/abs/2404.04956) (Yang et al.). Implementation: [Gaussian-Shading](https://github.com/bsmhmmlf/Gaussian-Shading).
+- `Prc` — [An Undetectable Watermark for Generative Image Models](https://arxiv.org/pdf/2410.07369) (Gunn et al.). Implementation: [PRC-Watermark](https://github.com/XuandongZhao/PRC-Watermark).
+- `Vine` — [Robust Watermarking Using Generative Priors Against Image Editing: From Benchmarking to Advances](https://arxiv.org/abs/2410.18775) (Lu et al.). Implementation: [VINE](https://github.com/Shilin-LU/VINE).
+
+Special thanks to [@manaswineegupta](https://github.com/manaswineegupta) for integrating these schemes.
+
+**Google SynthID:** UnMarker reduces detection on Google’s image watermarking scheme [SynthID](https://deepmind.google/science/synthid/), achieving a **79% attack success rate** in our experiments (i.e., detection drops from ~100% to ~21%).
+
+- We disclosed these results to Google; they acknowledged the findings and issued a bounty via the [VRP](https://bughunters.google.com/) program.
+- Our experiments used the Vertex AI Python SDK to (a) generate watermarked images with Imagen and (b) evaluate detections. We include evaluation code and instructions (see `SynthID (Vertex AI) — setup & usage`).
+- **Note:** Google appears to have restricted access to the verification model via the SDK since our runs. Automated reproduction with our harness may no longer work. Manual verification via the SynthID web UI remains possible, and UnMarker can be evaluated this way. However, minor code changes are needed to save raw attack outputs for manual uploads. If interested, please open an issue.
+
 ### Requirements
 - A high-end NVIDIA GPU with >=32 GB memory.
 - [CUDA=12](https://docs.nvidia.com/datacenter/tesla/driver-installation-guide/index.html) driver must be installed.
@@ -124,3 +140,25 @@ where the different entries have the following meanings:
 - NOT_DETECTED: Assigned 0 or 1 based on whether the watermark is no longer detected (1). This means that the current BIT_ACC is below the required threshold for detection.
 
 Note that evaluating the watermark can be costly at each optimization iteration, which would unnecessarily slow down the optimization despite it being unnecessary (as this information is not required for the attack but is merely for logging. While this is not an issue for most systems, TreeRing's watermark evaluation is extremely slow compared to all other schemes. As such, you may change the parameter <mark>eval_interval</mark> under <mark>progress_bar_args</mark> in the attack configuration file for UnMarker, choosing a large interval instead and thereby instructing UnMarker to log these watermark statistics less frequently (or never).
+
+### SynthID (Vertex AI) — setup & usage
+
+To generate watermarked images with Google's Imagen via VertexAI and verify the watermarks with SynthID, some dependencies and tools must be installed.
+
+**Prerequisites**
+1. Create a Google Cloud project **with billing enabled**.  
+   ↳ https://cloud.google.com/billing/docs/how-to/verify-billing-enabled#confirm_billing_is_enabled_on_a_project
+2. Enable the **Vertex AI** API for that project.  
+   ↳ https://console.cloud.google.com/flows/enableapi?apiid=aiplatform.googleapis.com
+
+**Install**
+```bash
+# Runs dependency checks and gcloud setup
+./install_synthid.sh
+```
+
+When prompted “Do you want to configure a default Compute Region and Zone? (Y/n)”, choose Y and select a zone from the menu.
+
+Run: ```python attack.py -a UnMarker -e SynthID -o OUTPUT_DIR``` (replace OUTPUT_DIR with your output directory of choice).
+
+*Important limitation:* Since our original experiments, Google appears to have restricted access to the SynthID verification model via the Vertex AI Python SDK. As a result, the automated end-to-end tests in this repo will not run. You can still evaluate UnMarker manually by uploading outputs to the SynthID web UI. If you need the codepath to emit raw attack images for manual upload, please open an issue.
