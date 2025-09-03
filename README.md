@@ -141,7 +141,7 @@ where the different entries have the following meanings:
 
 Note that evaluating the watermark can be costly at each optimization iteration, which would unnecessarily slow down the optimization despite it being unnecessary (as this information is not required for the attack but is merely for logging. While this is not an issue for most systems, TreeRing's watermark evaluation is extremely slow compared to all other schemes. As such, you may change the parameter <mark>eval_interval</mark> under <mark>progress_bar_args</mark> in the attack configuration file for UnMarker, choosing a large interval instead and thereby instructing UnMarker to log these watermark statistics less frequently (or never).
 
-### SynthID (Vertex AI) — setup & usage
+### SynthID (Vertex AI) — setup & usage (optional)
 
 To generate watermarked images with Google's Imagen via VertexAI and verify the watermarks with SynthID, some dependencies and tools must be installed.
 
