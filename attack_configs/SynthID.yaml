@@ -1,25 +1,23 @@
-input_dir: datasets/coco/val_class
-
 UnMarker:
     preprocess_args:
         crop_ratio: !!python/tuple [0.9, 0.9]
 
     stage2_args:
         loss_fn: 
-            type: DeeplossVGG
-        loss_thresh: 3.0e-3
+            type: LpipsVGG
+        loss_thresh: 2.0e-2
         dist_fn: 
             type: MeanLoss
             args: 
                 kernels: 
-                    - !!python/tuple [5, 5]
+                    - !!python/tuple [3, 3]
         clip_min: 0.0
         clip_max: 1.0
         binary_search_steps: 1
-        max_iterations: 500
-        initial_const: 1.0e6
+        max_iterations: 200
+        initial_const: 1.0e8
         filter_args:
-            loss_factor: 5
+            loss_factor: 0.5
             box: !!python/tuple [1, 1]
             kernels:
                 - !!python/tuple [21, 5]
@@ -36,33 +34,34 @@ UnMarker:
             pad_mode: reflect
             filter_mode: false
             loss_norm: 2
-        modifier_type: LA
+        modifier_type: RGB
         optimizer_args:
             type: Adam
             regularization:
                 type: l2
-                factor: 2.5e-4
+                thresh: 2.5e-5
+                factor: 500.0
             max_grad_l_inf: 1.0
             learning_rate: 
                 values:
-                    - 0.01
-                    - 0.01 
-                    - 0.01 
-                    - 0.01 
-                    - 0.01 
-                    - 0.01 
-                    - 0.01 
-                    - 0.01 
-                    - 0.01 
-                    - 0.002
+                    - 0.05
+                    - 0.05
+                    - 0.05
+                    - 0.05
+                    - 0.05
+                    - 0.05
+                    - 0.05
+                    - 0.05
+                    - 0.05
+                    - 0.000025
                 scheduler:
                     type: ReduceLROnPlateau
                     args:
-                        decay_threshold: 0.05
-                        decay_factor: 0.99
+                        decay_threshold: 0.1
+                        decay_factor: 0.9
             scale_mode: fp32
         progress_bar_args:
-            eval_interval: 500
+            eval_interval: 50
             verbose: True
     
     stage1_args:
@@ -73,11 +72,11 @@ UnMarker:
             args:
                 norm: 1
                 power: 1
-        loss_thresh: 1e-4
+        loss_thresh: 1e-5 #4
         clip_min: 0.0
         clip_max: 1.0
-        binary_search_steps: 1 #4
-        max_iterations: 2000 #5000
+        binary_search_steps: 1 #2 #3 #4
+        max_iterations: 5000
         initial_const: 1e6
         filter_args:
             loss_factor: 0
@@ -107,12 +106,12 @@ UnMarker:
             tanh_space: false
             scale_mode: fp32
         progress_bar_args:
-            eval_interval: 500
+            eval_interval: 1000
             verbose: True
-    stage_selector: [preprocess, stage1, stage2]
+    stage_selector: [stage2] #[preprocess, stage2] #Stage2 i.e, low-frequency is not required for StableSignature and can lead to worse quality
 
 DiffusionAttack:
-    crop_ratio: 0.9 # whether to apply cropping with the DiffusionAttack. Comment out if you wish to disable this.
+    #crop_ratio: 0.9 # whether to apply cropping with the DiffusionAttack. Comment out if you wish to disable this.
     diffusion_type: GuidedDiffusion
     diffusion_args:
         model_path: pretrained_models/imagenet.pth

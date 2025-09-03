@@ -1,0 +1,6 @@
+project_id: howdy-2a86d
+service: us-central1  
+generation_model: imagen-3.0-generate-002
+verification_model: imageverification@001
+data_path: datasets/treering_prompts.obj
+image_size: 512

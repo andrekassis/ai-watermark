@@ -1,3 +1,4 @@
+import os
 from .base import *
 from .hidden import HiDDeN
 from .yu1 import Yu1
@@ -9,3 +10,10 @@ from .stable_sig import StableSignature
 from .Prc import Prc
 from .Gs import Gs
 from .Vine import Vine
+
+TRUTHY = {"1", "true", "yes", "on"}
+env_var = "SYNTHID_EXT"
+if os.getenv(env_var, "").lower() in TRUTHY:
+    from .synthid import SynthID
+else:
+    SynthID = None
